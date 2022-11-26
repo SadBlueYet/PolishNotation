@@ -2,108 +2,135 @@
 #include <stack>
 #include <sstream>
 #include <math.h>
+#include <string.h>
 char* userInput();
 char* exitString(char* bufptr);
 void mathOperations(char* a);
+
+class Stack {
+public:
+    std::stack <char> operators; 
+    int counter = 0; 
+    void stackPush(char oper) {
+        operators.push(oper);
+    }
+    char* stackPopAndPush(char oper) {
+        char* stringOfoperators = (char*)malloc(1024 * sizeof(char));
+        counter = 0;
+        do {
+            if (operators.size() == 0) break;
+            if ((oper == '+' || oper == '-') && operators.top() == '(') break;
+            if ((oper == '*' || oper == '/') && (operators.top() == '+' || operators.top() == '-' || operators.top() == '(' || operators.size() == 0)) break;
+            if (oper == '^' && operators.size() == 0) break;
+            if (oper == ')' && operators.top() == '(') {
+                operators.pop();
+                break;
+            }
+            stringOfoperators[counter] = operators.top();
+            stringOfoperators[counter + 1] = ' ';
+            counter += 2;
+            operators.pop();
+            if (counter % 1024 == 0)
+                stringOfoperators = (char*)realloc(stringOfoperators, 1024 * (counter / 1024 + 1) * sizeof(char));
+        } while (true);
+        if(oper != ')') operators.push(oper);
+        stringOfoperators[counter] = '\0';
+        return stringOfoperators;
+    }
+};
+
 int main() {
     mathOperations(userInput());
-    
     return 0;
 }
+
 char* userInput() {
     char* buffer = (char*)malloc(1024 * sizeof(char));
     std::cin >> buffer;
     return exitString(buffer);      
 }
+
 char* exitString(char* bufptr) {
+    Stack stack;
     char* p = bufptr;
-    std::stack <char> stackOperators;
-    char* operand = (char*)malloc(1024 * sizeof(char));
-    int counterOperand= 0;
+    char* exitString = (char*)malloc(1024 * sizeof(char));
+    char* operatr = (char*)malloc(1024 * sizeof(char));
+    int counter= 0;
     do {
         if (isdigit(*p)) {
-            operand[counterOperand] = *p;
+            exitString[counter] = *p;
             p++;
-            counterOperand++;
+            counter++;
             if (isdigit(*p)) {
                 do {
-                    operand[counterOperand] = *p;
+                    exitString[counter] = *p;
                     p++;
-                    counterOperand++;
+                    counter++;
                 } while (isdigit(*p));
             }
-            operand[counterOperand] = ' ';
-            counterOperand++;
+            exitString[counter] = ' ';
+            counter++;
         }
 
         else{
-            if (stackOperators.size() == 0 || *p == '(') {
-                stackOperators.push(*p);
+            if (stack.operators.empty() || *p == '(') {
+                stack.stackPush(*p);
                 p++;
             }
             else {
-                if ((stackOperators.top() == '+' || stackOperators.top() == '-' || stackOperators.top() == '*' ||
-                    stackOperators.top() == '/' || stackOperators.top() == '^') && (*p == '+' || *p == '-')) {
-                    operand[counterOperand] = stackOperators.top();
-                    operand[counterOperand + 1] = ' ';
-                    counterOperand += 2;
-                    stackOperators.pop();
-                    if (stackOperators.size() != 0 && (stackOperators.top() == '+' || stackOperators.top() == '-' || stackOperators.top() == '*' ||
-                        stackOperators.top() == '/')) {
-                        do {
-                            operand[counterOperand] = stackOperators.top();
-                            operand[counterOperand + 1] = ' ';
-                            stackOperators.pop();
-                            counterOperand += 2;
-                        } while (stackOperators.size() != 0);
-                    }
-                    stackOperators.push(*p);
+                if ((*p == '-' || *p == '+') && stack.operators.top() == '(' || stack.operators.size() == 0) {
+                    stack.stackPush(*p);
                     p++;
                 }
-                else if ((stackOperators.top() == '*' || stackOperators.top() == '/' || stackOperators.top() == '^') && (*p == '*' || *p == '/')) {
-                    operand[counterOperand] = stackOperators.top();
-                    operand[counterOperand + 1] = ' ';
-                    stackOperators.pop();
-                    stackOperators.push(*p);
-                    counterOperand += 2;
-                    p++;
+                else if ((*p == '*' || *p == '/') && (stack.operators.top() == '+' ||
+                    stack.operators.top() == '-' || stack.operators.top() == '(' || stack.operators.size() == 0)) {
+                    stack.stackPush(*p);
+                    p++;  
                 }
-                else if (stackOperators.top() == '^' && *p == '^') {
-                    operand[counterOperand] = stackOperators.top();
-                    operand[counterOperand + 1] = ' ';
-                    stackOperators.pop();
-                    stackOperators.push(*p);
-                    counterOperand += 2;
+                else if (*p == '^' && (stack.operators.size() == 0 || stack.operators.top() == '+' ||
+                    stack.operators.top() == '-' || stack.operators.top() == '(' ||
+                    stack.operators.top() == '*' || stack.operators.top() == '/')) {
+                    stack.stackPush(*p);
                     p++;
                 }
                 else if (*p == ')') {
-                    do {
-                        operand[counterOperand] = stackOperators.top();
-                        operand[counterOperand + 1] = ' ';
-                        stackOperators.pop();
-                        counterOperand +=2;
-                    } while (stackOperators.top() != '(');
-                    stackOperators.pop();
+                    operatr = stack.stackPopAndPush(*p);
+                    if (strlen(operatr) % 1024 == 0)
+                        operatr = (char*)realloc(operatr, 1024 * (strlen(operatr) / 1024 + 1) * sizeof(char));
+                    exitString[counter] = '\0';
+                    exitString = strcat(exitString, operatr);
+                    counter += stack.counter;
                     p++;
                 }     
                 else {
-                    stackOperators.push(*p);
+                    operatr = stack.stackPopAndPush(*p);
+                    if (strlen(operatr) % 1024 == 0)
+                        operatr = (char*)realloc(operatr, 1024 * (strlen(operatr) / 1024 + 1) * sizeof(char));
+                    exitString[counter] = '\0';
+                    exitString = strcat(exitString, operatr);
+                    counter += stack.counter;
                     p++;
                 }
             }
-        }    
+        } 
+        if (counter % 1024 == 0)
+            exitString = (char*)realloc(exitString, 1024 * (counter / 1024 + 1) * sizeof(char));
     } while (*p != '\0');
-    if(stackOperators.size() != 0) {
+
+    if(stack.operators.size() != 0) {
         do {
-            operand[counterOperand] = stackOperators.top();
-            operand[counterOperand + 1] = ' ';
-            stackOperators.pop();
-            counterOperand += 2;
-        } while (stackOperators.size() != 0);
+            exitString[counter] = stack.operators.top();
+            exitString[counter + 1] = ' ';
+            stack.operators.pop();
+            counter += 2;
+            if (counter % 1024 == 0)
+                exitString = (char*)realloc(exitString, 1024 * (counter / 1024 + 1) * sizeof(char));
+        } while (stack.operators.size() != 0);
     }
-    operand[counterOperand] = '\0';
-    return operand;
+    exitString[counter] = '\0';
+    return exitString;
 }
+
 void mathOperations(char*a) {
     std::istringstream str(a);
     std::stack<double> numbers;
