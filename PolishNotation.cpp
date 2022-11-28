@@ -61,12 +61,19 @@ char* exitString(char* bufptr) {
             exitString[counter] = *p;
             p++;
             counter++;
-            if (isdigit(*p)) {
+            if (isdigit(*p) || (*p == '.' || *p == ',')) {
                 do {
+                    if (*p == '.' || *p == ',') {                     
+                        exitString[counter] = *p;
+                        p++;
+                        counter++;
+                    }
                     exitString[counter] = *p;
                     p++;
                     counter++;
-                } while (isdigit(*p));
+                    
+                } while (isdigit(*p) || (*p == '.' || *p == ','));
+                
             }
             exitString[counter] = ' ';
             counter++;
