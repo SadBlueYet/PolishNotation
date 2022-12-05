@@ -8,7 +8,7 @@
 char* userInput();
 char* exitString(char* bufptr);
 void mathOperations(char* a);
-
+char* trigonometry(double value, int& count, int& counter, char* exitString);
 class Stack {
 public:
     std::stack <char> operators;
@@ -90,22 +90,7 @@ char* exitString(char* bufptr) {
             }
             else {
                 int count = 0;
-                if ((*p == '-' || *p == '+') && (stack.operators.top() == '(' || stack.operators.size() == 0)) {
-                    stack.stackPush(*p);
-                    p++;
-                }
-                else if ((*p == '*' || *p == '/') && (stack.operators.top() == '+' ||
-                    stack.operators.top() == '-' || stack.operators.top() == '(' || stack.operators.size() == 0)) {
-                    stack.stackPush(*p);
-                    p++;
-                }
-                else if (*p == '^' && (stack.operators.size() == 0 || stack.operators.top() == '+' ||
-                    stack.operators.top() == '-' || stack.operators.top() == '(' ||
-                    stack.operators.top() == '*' || stack.operators.top() == '/')) {
-                    stack.stackPush(*p);
-                    p++;
-                }
-                else if (*p == ')') {
+                if (*p == ')') {
                     operatr = stack.stackPopAndPush(*p);
                     if (strlen(operatr) % 1024 == 0)
                         operatr = (char*)realloc(operatr, 1024 * (strlen(operatr) / 1024 + 1) * sizeof(char));
@@ -113,39 +98,28 @@ char* exitString(char* bufptr) {
                     exitString = strcat(exitString, operatr);
                     counter += stack.counter;
                     p++;
+                    continue;
                 }
-                else if (*p == 's' || *p == 'S') {
-                    
+                else if (*p == 's' || *p == 'S') { 
                     p++;
                     if (*p == 'q' || *p == 'Q') {
-                        p++;
                         while (!isdigit(*p)) {
                             p++;
                         }
                         value = atoi(p);
                         value = sqrt(value);
-                        num = std::to_string(value);
-                        while (num[count] != '\0') {
-                            exitString[counter] = num[count];
-                            counter++; count++;
-                        }
-                        exitString[counter] = ' ';
+                        exitString = trigonometry(value, count, counter, exitString);
+                        continue;
                     }
                     if (*p == 'i' || *p == 'I') {
-                        p++;
                         while (!isdigit(*p)) {
                             p++;
                         }
                         value = atoi(p);
                         value = sin(value * PI / 180);
-                        num = std::to_string(value);
-                        while (num[count] != '\0') {
-                            exitString[counter] = num[count];
-                            counter++; count++;
-                        }
-                        exitString[counter] = ' ';
+                        exitString = trigonometry(value, count, counter, exitString);
+                        continue;
                     }
-                    
                 }
                 else if (*p == 'c' || *p == 'C') {
                     p++;
@@ -155,12 +129,8 @@ char* exitString(char* bufptr) {
                         }
                         value = atoi(p);
                         value = cos(value * PI / 180);
-                        num = std::to_string(value);
-                        while (num[count] != '\0') {
-                            exitString[counter] = num[count];
-                            counter++; count++;
-                        }
-                        exitString[counter] = ' ';
+                        exitString = trigonometry(value, count, counter, exitString);
+                        continue;
                     }
                     if (*p == 't' || *p == 'T') {
                         p++;
@@ -171,31 +141,20 @@ char* exitString(char* bufptr) {
                             value = atoi(p);
                             value = 1 / tan(value * PI / 180);
                             num = std::to_string(value);
-                            while (num[count] != '\0') {
-                                exitString[counter] = num[count];
-                                counter++; count++;
-                            }
-                            exitString[counter] = ' ';
+                            exitString = trigonometry(value, count, counter, exitString);
+                            continue;
                         }
                     }
                 }
                 else if (*p == 't' || *p == 'T') {
-                    p++;
-                    if (*p == 'g' || *p == 'G') {
-                        while (!isdigit(*p)) {
-                            p++;
-                        }
-                        value = atoi(p);
-                        value = tan(value * PI / 180);
-                        num = std::to_string(value);
-                        while (num[count] != '\0') {
-                            exitString[counter] = num[count];
-                            counter++; count++;
-                        }
-                        exitString[counter] = ' ';
+                    while (!isdigit(*p)) {
+                        p++;
                     }
-                }
-
+                    value = atoi(p);
+                    value = tan(value * PI / 180);
+                    exitString = trigonometry(value, count, counter, exitString);
+                    continue;
+                    }
                 else {
                     operatr = stack.stackPopAndPush(*p);
                     if (strlen(operatr) % 1024 == 0)
@@ -204,7 +163,10 @@ char* exitString(char* bufptr) {
                     exitString = strcat(exitString, operatr);
                     counter += stack.counter;
                     p++;
+                    continue;
                 }
+                stack.stackPush(*p);
+                p++;
             }
         }
         if (counter % 1024 == 0)
@@ -261,4 +223,14 @@ void mathOperations(char* a) {
     }
     std::cout << "result value is " << numbers.top() << std::endl;
     return;
+}
+char* trigonometry(double value, int& count, int& counter, char* exitString) {
+    std::string num;
+    num = std::to_string(value);
+    while (num[count] != '\0') {
+        exitString[counter] = num[count];
+        counter++; count++;
+    }
+    exitString[counter] = ' ';
+    return exitString;
 }
