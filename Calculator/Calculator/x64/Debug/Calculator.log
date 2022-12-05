@@ -1,0 +1,4 @@
+﻿  MyForm.cpp
+C:\Users\A9537\source\repos\Calculator\Calculator\MyForm.h(257,32): warning C4244: =: преобразование "wchar_t" в "char", возможна потеря данных
+  MyForm.obj : обнаружен модуль MSIL; для MSIL последовательная компоновка отключена; выполняется полная компоновка
+  Calculator.vcxproj -> C:\Users\A9537\source\repos\Calculator\x64\Debug\Calculator.exe
