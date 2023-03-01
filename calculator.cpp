@@ -2,22 +2,24 @@
 #include <stack>
 #include <sstream>
 #include <math.h>
-#include <string.h>
+
 #include <string>
 #define PI 3.14159265
-std::string userInput();
-std::string exitString(std::string bufptr);
+void userInput();
+void exitString(std::string bufptr);
 void mathOperations(std::string a);
-std::string trigonometry(double value, int& count, int& counter, std::string exitString);
+void trigonometry(double value, int& count, int& counter, std::string& exitString);
+void createValue(std::string& value, char ch);
 class Stack {
 public:
+    std::string stringOfoperators;
     std::stack <char> operators;
     int counter = 0;
     void stackPush(char oper) {
         operators.push(oper);
     }
-    std::string stackPopAndPush(char oper) {
-        std::string stringOfoperators;
+    void stackPopAndPush(char oper) {
+        stringOfoperators = "";
         counter = 0;
         do {
             if (operators.size() == 0) break;
@@ -26,69 +28,68 @@ public:
             if (oper == '^' && operators.size() == 0) break;
             if (oper == ')' && operators.top() == '(') {
                 operators.pop();
-                break;
+                if (operators.size() == 0) break;
             }
-            stringOfoperators[counter] = operators.top();
-            stringOfoperators[counter + 1] = ' ';
+            stringOfoperators += operators.top();
+            stringOfoperators += ' ';
             counter += 2;
             operators.pop();
         } while (true);
         if (oper != ')') operators.push(oper);
-        stringOfoperators[counter] = '\0';
-        return stringOfoperators;
     }
 };
 
 int main() {
-    mathOperations(userInput());
+    userInput();
     return 0;
 }
 
-std::string userInput() {
+void userInput() {
     std::string buffer;
     std::cin >> buffer;
-    return exitString(buffer);
+    exitString(buffer);
 }
 
-std::string exitString(std::string bufptr) {
+void exitString(std::string bufptr) {
     Stack stack;
-    double value;
-    std::string num, exitString, operatr;
-    int counter = 0;
-    for(int i = 0; i < bufptr.length(); i++) {
+    std::string num = "", exiString = "", operatr = "", value;
+    double val;
+    int counter = 0, i = 0;
+    do {
         if (isdigit(bufptr[i])) {
-            exitString[counter] = bufptr[i];
+            exiString += bufptr[i];
             i++;
             counter++;
             if (isdigit(bufptr[i]) || (bufptr[i] == '.' || bufptr[i] == ',')) {
                 do {
                     if (bufptr[i] == '.' || bufptr[i] == ',') {
-                        exitString[counter] = '.';
+                        exiString += '.';
                         i++;
                         counter++;
                     }
-                    exitString[counter] = bufptr[i];
+                    exiString += bufptr[i];
                     i++;
                     counter++;
 
                 } while (isdigit(bufptr[i]) || (bufptr[i] == '.' || bufptr[i] == ','));
 
             }
-            exitString[counter] = ' ';
+            exiString += ' ';
             counter++;
         }
 
         else {
-            if ((stack.operators.empty() || bufptr[i] == '(') && bufptr[i] != 's') {
+            if ((stack.operators.empty() || bufptr[i] == '(' || bufptr[i] == '^') && bufptr[i] != 's') {
                 stack.stackPush(bufptr[i]);
                 i++;
             }
             else {
+                value = "";
                 int count = 0;
                 if (bufptr[i] == ')') {
-                    operatr = stack.stackPopAndPush(bufptr[i]);
-                    exitString[counter] = '\0';
-                    exitString += operatr;
+                    stack.stackPopAndPush(bufptr[i]);
+                    operatr = stack.stringOfoperators;
+                    exiString += operatr;
                     counter += stack.counter;
                     i++;
                     continue;
@@ -99,18 +100,28 @@ std::string exitString(std::string bufptr) {
                         while (!isdigit(bufptr[i])) {
                             i++;
                         }
-                        value = (int)bufptr[i];
-                        value = sqrt(value);
-                        exitString = trigonometry(value, count, counter, exitString);
+                        if (isdigit(bufptr[i])) {
+                            while (isdigit(bufptr[i])) {
+                                createValue(value, (char)bufptr[i]);
+                                i++;
+                            }
+                        }
+                        val = sqrt(stod(value));
+                        trigonometry(val, count, counter, exiString);
                         continue;
                     }
                     if (bufptr[i] == 'i' || bufptr[i] == 'I') {
                         while (!isdigit(bufptr[i])) {
                             i++;
                         }
-                        value = (int)bufptr[i];
-                        value = sin(value * PI / 180);
-                        exitString = trigonometry(value, count, counter, exitString);
+                        if (isdigit(bufptr[i])) {
+                            while (isdigit(bufptr[i])) {
+                                createValue(value, (char)bufptr[i]);
+                                i++;
+                            }
+                        }
+                        val = sin(stod(value) * PI / 180);
+                        trigonometry(val, count, counter, exiString);
                         continue;
                     }
                 }
@@ -120,21 +131,30 @@ std::string exitString(std::string bufptr) {
                         while (!isdigit(bufptr[i])) {
                             i++;
                         }
-                        value = (int)bufptr[i];
-                        value = cos(value * PI / 180);
-                        exitString = trigonometry(value, count, counter, exitString);
+                        if (isdigit(bufptr[i])) {
+                            while (isdigit(bufptr[i])) {
+                                createValue(value, (char)bufptr[i]);
+                                i++;
+                            }
+                        }
+                        val = cos(stod(value) * PI / 180);
+                        trigonometry(val, count, counter, exiString);
                         continue;
                     }
                     if (bufptr[i] == 't' || bufptr[i] == 'T') {
                         i++;
-                        if (bufptr[i] == 'o' || bufptr[i] == 'O') {
+                        if (bufptr[i] == 'g' || bufptr[i] == 'G') {
                             while (!isdigit(bufptr[i])) {
                                 i++;
                             }
-                            value = (int)bufptr[i];
-                            value = 1 / tan(value * PI / 180);
-                            num = std::to_string(value);
-                            exitString = trigonometry(value, count, counter, exitString);
+                            if (isdigit(bufptr[i])) {
+                                while (isdigit(bufptr[i])) {
+                                    createValue(value, (char)bufptr[i]);
+                                    i++;
+                                }
+                            }
+                            val = 1 / tan(stod(value) * PI / 180);
+                            trigonometry(val, count, counter, exiString);
                             continue;
                         }
                     }
@@ -143,16 +163,20 @@ std::string exitString(std::string bufptr) {
                     while (!isdigit(bufptr[i])) {
                         i++;
                     }
-                    value = (int)bufptr[i];
-                    value = tan(value * PI / 180);
-                    exitString = trigonometry(value, count, counter, exitString);
+                    if (isdigit(bufptr[i])) {
+                        while (isdigit(bufptr[i])) {
+                            createValue(value, (char)bufptr[i]);
+                            i++;
+                        }
+                    }
+                    val = tan(stod(value) * PI / 180);
+                    trigonometry(val, count, counter, exiString);
                     continue;
                 }
                 else {
-                    operatr = stack.stackPopAndPush(bufptr[i]);
-                   
-                    exitString[counter] = '\0';
-                    exitString += operatr;
+                    stack.stackPopAndPush(bufptr[i]);
+                    operatr = stack.stringOfoperators;
+                    exiString += operatr;
                     counter += stack.counter;
                     i++;
                     continue;
@@ -161,18 +185,17 @@ std::string exitString(std::string bufptr) {
                 i++;
             }
         }
-    }
+    }while (i < bufptr.length());
 
     if (stack.operators.size() != 0) {
         do {
-            exitString[counter] = stack.operators.top();
-            exitString[counter + 1] = ' ';
+            exiString += stack.operators.top();
+            exiString += ' ';
             stack.operators.pop();
             counter += 2;
         } while (stack.operators.size() != 0);
     }
-    exitString[counter] = '\0';
-    return exitString;
+    mathOperations(exiString);
 }
 
 void mathOperations(std::string a) {
@@ -212,13 +235,15 @@ void mathOperations(std::string a) {
     std::cout << "result value is " << numbers.top() << std::endl;
     return;
 }
-std::string trigonometry(double value, int& count, int& counter, std::string exitString) {
+void trigonometry(double val, int& count, int& counter, std::string& exitString) {
     std::string num;
-    num = std::to_string(value);
+    num = std::to_string(val);
     while (num[count] != '\0') {
-        exitString[counter] = num[count];
+        exitString += num[count];
         counter++; count++;
     }
-    exitString[counter] = ' ';
-    return exitString;
+    exitString += ' ';
+}
+void createValue(std::string& value, char ch) {
+    value += ch;
 }
